@@ -115,8 +115,8 @@ Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
         {
         pstmt->setString(1,boost::lexical_cast<std::string>(current_time.tv_sec)+"."+boost::lexical_cast<std::string>(current_time.tv_usec / 1000));
 
-		//inserting date
-		pstmt->setString(2,boost::lexical_cast<std::string>(ltm->tm_hour)+":"+ boost::lexical_cast<std::string>((ltm->tm_min  < 10 ?"0":""))+boost::lexical_cast<std::string>( ltm->tm_min) + ":" + boost::lexical_cast<std::string>(( ltm->tm_sec < 10 ?"0":""))+boost::lexical_cast<std::string>( ltm->tm_sec));
+		//inserting date	
+		pstmt->setString(2,boost::lexical_cast<std::string>(1900 + ltm->tm_year)+"-"+boost::lexical_cast<std::string>(1 + ltm->tm_mon < 10 ?"0":"")+boost::lexical_cast<std::string>(1 + ltm->tm_mon)+"-"+boost::lexical_cast<std::string>((ltm->tm_mday < 10 ?"0":""))+boost::lexical_cast<std::string>(ltm->tm_mday));
 
 		//inserting time
 		pstmt->setString(3,boost::lexical_cast<std::string>(ltm->tm_hour)+":"+boost::lexical_cast<std::string>( ltm->tm_min) + ":" + boost::lexical_cast<std::string>(( ltm->tm_sec < 10 ?"0":""))+boost::lexical_cast<std::string>( ltm->tm_sec));
