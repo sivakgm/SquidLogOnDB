@@ -41,12 +41,31 @@
 #include "SquidConfig.h"
 #include "SquidTime.h"
 
+//Modified to insert log into DB
+
+#include <ctime>
+#include<sys/time.h>
+#include <string>
+#include <cppconn/exception.h>
+#include <cppconn/prepared_statement.h>
+#include <boost/lexical_cast.hpp>
+
+extern sql::PreparedStatement *pstmt;
+
+//#############################
+
 void
 Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
 {
     char hierHost[MAX_IPSTRLEN];
 
     const char *user = NULL;
+
+	//Modified for DB log
+	
+	tm *ltm = localtime(&current_time.tv_sec);
+
+	//########################
 
 #if USE_AUTH
     if (al->request && al->request->auth_user_request != NULL)
@@ -89,6 +108,40 @@ Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
                   (Config.onoff.log_mime_hdrs?"":"\n"));
 
     safe_free(user);
+
+//Log insertion DB insertion
+
+        try
+        {
+        pstmt->setString(1,boost::lexical_cast<std::string>(current_time.tv_sec)+"."+boost::lexical_cast<std::string>(current_time.tv_usec / 1000));
+
+		//inserting date
+		pstmt->setString(2,boost::lexical_cast<std::string>(ltm->tm_hour)+":"+ boost::lexical_cast<std::string>((ltm->tm_min  < 10 ?"0":""))+boost::lexical_cast<std::string>( ltm->tm_min) + ":" + boost::lexical_cast<std::string>(( ltm->tm_sec < 10 ?"0":""))+boost::lexical_cast<std::string>( ltm->tm_sec));
+
+		//inserting time
+		pstmt->setString(3,boost::lexical_cast<std::string>(ltm->tm_hour)+":"+boost::lexical_cast<std::string>( ltm->tm_min) + ":" + boost::lexical_cast<std::string>(( ltm->tm_sec < 10 ?"0":""))+boost::lexical_cast<std::string>( ltm->tm_sec));
+
+        pstmt->setInt(4,al->cache.msec);
+        pstmt->setString(5,clientip);
+        pstmt->setString(6,LogTags_str[al->cache.code]);
+        pstmt->setString(7,boost::lexical_cast<std::string>(al->http.code));
+        pstmt->setInt(8,al->cache.replySize);
+        pstmt->setString(9,al->_private.method_str);
+        pstmt->setString(10,al->url);
+        pstmt->setString(11,user ? user : dash_str);
+        pstmt->setString(12,hier_code_str[al->hier.code]);
+        pstmt->setString(13,al->hier.tcpServer != NULL ? al->hier.tcpServer->remote.toStr(hierHost, sizeof(hierHost)) : "-");
+        pstmt->setString(14,al->http.content_type);
+
+        pstmt->executeUpdate();
+        }
+        catch(sql::SQLException &e)
+        {
+
+        }
+
+
+//########################
 
     if (Config.onoff.log_mime_hdrs) {
         char *ereq = ::Format::QuoteMimeBlob(al->headers.request);
