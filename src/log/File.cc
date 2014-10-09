@@ -39,6 +39,24 @@
 #include "log/ModUdp.h"
 #include "log/TcpLogger.h"
 
+//Modified for opening global connection
+#include <string>
+#include <mysql_connection.h>
+#include <mysql_driver.h>
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+#include <cppconn/prepared_statement.h>
+
+
+sql::Driver *driver;
+sql::Connection *conn;
+sql::PreparedStatement *pstmt;
+
+
+// ##########################
+
 CBDATA_TYPE(Logfile);
 
 Logfile *
@@ -49,6 +67,23 @@ logfileOpen(const char *path, size_t bufsz, int fatal_flag)
 
     debugs(50, DBG_IMPORTANT, "Logfile: opening log " << path);
     CBDATA_INIT_TYPE(Logfile);
+
+//DB Global initialization
+
+	try
+	{
+		driver = get_driver_instance();
+		conn = driver->connect("tcp://127.0.0.1:3306","root","simple");
+		conn->setSchema("squid");
+		pstmt = conn->prepareStatement("insert into access_log(time_since_epoch,date_day,date_time,response_time,client_src_ip_addr,squid_request_status,http_status_code,reply_size,request_method,request_url,username,squid_hier_status,server_ip_addr,mime_type) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+	}
+	catch(sql::SQLException &e)
+	{
+		fatalf("Connection to Database failed ");
+	}
+
+
+// ########################
 
     Logfile *lf = cbdataAlloc(Logfile);
     xstrncpy(lf->path, path, MAXPATHLEN);
