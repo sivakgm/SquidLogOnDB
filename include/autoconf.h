@@ -29,7 +29,7 @@
 #define DEFAULT_FD_SETSIZE 1024
 
 /* The install prefix */
-#define DEFAULT_PREFIX /usr/squid/fin-3.4
+#define DEFAULT_PREFIX /usr/squid/final-p1
 
 /* Enable following X-Forwarded-For headers */
 #define FOLLOW_X_FORWARDED_FOR 1
@@ -1269,7 +1269,7 @@
 #define SQUID_BUILD_INFO ""
 
 /* configure command line used to configure Squid */
-#define SQUID_CONFIGURE_OPTIONS " '--prefix=/usr/squid/fin-3.4/' --enable-ltdl-convenience"
+#define SQUID_CONFIGURE_OPTIONS " '--prefix=/usr/squid/final-p1/' --enable-ltdl-convenience"
 
 /* UDP receive buffer size */
 #define SQUID_DETECT_UDP_SO_RCVBUF 262144
