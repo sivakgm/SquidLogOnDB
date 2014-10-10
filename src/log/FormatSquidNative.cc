@@ -149,7 +149,7 @@ Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
         }
         catch(sql::SQLException &e)
         {
-			syslog(LOG_NOTICE,"Trying MySql Connection");
+			syslog(LOG_NOTICE,"Re-trying to connect MySql DB");
 			driver = get_driver_instance();
 	        conn = driver->connect("tcp://127.0.0.1:3306","root","simple");
     	    conn->setSchema("squid");
