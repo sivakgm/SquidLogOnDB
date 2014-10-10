@@ -123,39 +123,39 @@ Log::Format::SquidNative(const AccessLogEntry::Pointer &al, Logfile * logfile)
 	try
 	{
 
-        try
-        {
-	        pstmt->setString(1,boost::lexical_cast<std::string>(current_time.tv_sec));
+        	try
+        	{
+			 pstmt->setString(1,boost::lexical_cast<std::string>(current_time.tv_sec));
 
 		//inserting date	
 			pstmt->setString(2,boost::lexical_cast<std::string>(1900 + ltm->tm_year)+"-"+boost::lexical_cast<std::string>(1 + ltm->tm_mon < 10 ?"0":"")+boost::lexical_cast<std::string>(1 + ltm->tm_mon)+"-"+boost::lexical_cast<std::string>((ltm->tm_mday < 10 ?"0":""))+boost::lexical_cast<std::string>(ltm->tm_mday));
 
 		//inserting time
 			pstmt->setString(3,boost::lexical_cast<std::string>(ltm->tm_hour)+":"+boost::lexical_cast<std::string>((ltm->tm_min < 10 ?"0":"")) +boost::lexical_cast<std::string>( ltm->tm_min) + ":" + boost::lexical_cast<std::string>(( ltm->tm_sec < 10 ?"0":""))+boost::lexical_cast<std::string>( ltm->tm_sec));
+		
+			pstmt->setInt(4,al->cache.msec);
+    	    		pstmt->setString(5,clientip);
+	        	pstmt->setString(6,LogTags_str[al->cache.code]);
+    			pstmt->setString(7,boost::lexical_cast<std::string>(al->http.code));
+	        	pstmt->setInt(8,al->cache.replySize);
+    			pstmt->setString(9,al->_private.method_str);
+        		pstmt->setString(10,al->url);
+	        	pstmt->setString(11,user ? user : dash_str);
+    			pstmt->setString(12,hier_code_str[al->hier.code]);
+        		pstmt->setString(13,al->hier.tcpServer != NULL ? al->hier.tcpServer->remote.toStr(hierHost, sizeof(hierHost)) : "-");
+	        	pstmt->setString(14,al->http.content_type);
 
-	        pstmt->setInt(4,al->cache.msec);
-    	    pstmt->setString(5,clientip);
-	        pstmt->setString(6,LogTags_str[al->cache.code]);
-    	    pstmt->setString(7,boost::lexical_cast<std::string>(al->http.code));
-	        pstmt->setInt(8,al->cache.replySize);
-    	    pstmt->setString(9,al->_private.method_str);
-        	pstmt->setString(10,al->url);
-	        pstmt->setString(11,user ? user : dash_str);
-    	    pstmt->setString(12,hier_code_str[al->hier.code]);
-        	pstmt->setString(13,al->hier.tcpServer != NULL ? al->hier.tcpServer->remote.toStr(hierHost, sizeof(hierHost)) : "-");
-	        pstmt->setString(14,al->http.content_type);
-
-    	    pstmt->executeUpdate();
-        }
-        catch(sql::SQLException &e)
-        {
+    			pstmt->executeUpdate();
+        	}
+        	catch(sql::SQLException &e)
+        	{
 			syslog(LOG_NOTICE,"Re-trying to connect MySql DB");
 			driver = get_driver_instance();
-	        conn = driver->connect("tcp://127.0.0.1:3306","root","simple");
-    	    conn->setSchema("squid");
-        	pstmt = conn->prepareStatement("insert into access_log(time_since_epoch,date_day,date_time,response_time,client_src_ip_addr,squid_request_status,http_status_code,reply_size,request_method,request_url,username,squid_hier_status,server_ip_addr,mime_type) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
+	        	conn = driver->connect("tcp://127.0.0.1:3306","root","simple");
+    	    		conn->setSchema("squid");
+        		pstmt = conn->prepareStatement("insert into access_log(time_since_epoch,date_day,date_time,response_time,client_src_ip_addr,squid_request_status,http_status_code,reply_size,request_method,request_url,username,squid_hier_status,server_ip_addr,mime_type) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?);");
 			syslog(LOG_NOTICE,"Connected to MySQL");
-        }
+	 	}	
 	}
 	catch(sql::SQLException &e)
 	{
